@@ -24,7 +24,7 @@ GAMES
 ▄█___
 ```
 
-## Masks
+### Masks
 ```
 print(', '.join(game.generate_masks(pretty=True)))
 ```
