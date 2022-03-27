@@ -21,7 +21,17 @@ WORDS_SET = set(WORDS_TXT.splitlines())
 
 
 class Result:
-    key = {
+    """
+    Represent the result of a guess: 
+        0 = not in word
+        1 = wrong spot
+        2 = right spot
+    ex:
+        spore
+        00120
+    """
+
+    str_key = {
         '0': '_',
         '1': '▄',
         '2': '█'
@@ -32,19 +42,25 @@ class Result:
         self.result = result
 
     def __str__(self):
-        return ''.join(map(lambda i: Result.key[i], self.result))
+        return ''.join(map(lambda i: Result.str_key[i], self.result))
 
     def __repr__(self):
         return f'Result({self.result})'
+
+    def __len__(self):
+        return len(self.result)
 
     def __iter__(self):
         yield from self.result
 
 class Guess:
-    def __init__(self, word: str, result: Union[str, Result]):
+    def __init__(self,
+                 word: str,
+                 result: Union[str, Result]):
         if isinstance(result, str):
             result = Result(result)
-
+        assert len(word) == len(result), f'word length ({len(word)}) must equal result length ({len(result)})'
+        
         self.word = word.upper()
         self.result = result
 
@@ -53,6 +69,9 @@ class Guess:
 
     def __repr__(self):
         return f'Guess({self.word}, {self.result})'
+
+    def __len__(self):
+        return len(self.word)
 
 class Game:
     def __init__(self,
@@ -99,7 +118,11 @@ class Game:
 
         # self.remaining_letters -= {ch for ch, res in zip(guess.word, guess.result) if res == 0}
 
-    def generate_masks(self, mask=None, constrs=None, last_idx=-1, pretty=False):
+    def generate_masks(self,
+                       mask=None,
+                       constrs=None,
+                       last_idx=-1,
+                       pretty=False):
         if mask is None:
             mask = deepcopy(self.correct_mask)
         if constrs is None:
@@ -134,7 +157,7 @@ class Game:
                 # Reset mask
                 mask[idx] = None
 
-    def generate_guesses(self, time_limit=15, verbose=False, pretty=True):
+    def generate_matches(self, time_limit=15, verbose=False, pretty=True):
         invalid_guessed = set()
         duplicate_invalids = 0
         total_invalids = 0
@@ -270,33 +293,60 @@ class Game:
                     break
 
         if verbose:
-            print(f'Checked {total_valids + total_invalids} words ({len(valid_guessed)} unique valid, {len(invalid_guessed)} unique invalid)')
-            print(f'% valid (total): {total_valids / (total_valids + total_invalids):.2%}')
-            print(f'% valid (unique guesses): {len(valid_guessed) / (len(valid_guessed) + len(invalid_guessed)):.2%}')
-            print(f'Duplicate valids checked: {duplicate_valids}')
-            print(f'Duplicate invalids checked: {duplicate_invalids}')
+            print()
+            print(f'Checked {total_valids + total_invalids:,} words ({len(valid_guessed):,} unique valid, {len(invalid_guessed):,} unique invalid)')
+            print(f'% valid (of total): {total_valids / (total_valids + total_invalids):.2%}')
+            print(f'% valid (of unique): {len(valid_guessed) / (len(valid_guessed) + len(invalid_guessed)):.2%}')
+            print(f'Duplicate valids checked: {duplicate_valids:,}')
+            print(f'Duplicate invalids checked: {duplicate_invalids:,}')
+            print('---')
+            print(f'Matches: {", ".join(valid_guessed)}')
 
-    def get_word_matches(self):
-        word_matches = []
+    def get_matches(self):
+        word_matches = set()
         for mask in self.generate_masks():
             mask_pat = ''.join((e if e is not None else '.' for e in mask))
-            # print(f'Searching "{mask_pat}"')
-            matches = re.findall(mask_pat, WORDS_TXT)
-            # print(matches)
-            # print()
-            word_matches.extend(matches)
+            print(mask_pat)
+            matches = re.findall(mask_pat, WORDS_TXT, re.MULTILINE)
+            word_matches |= set(matches)
         return word_matches
 
+def main():
+    # Enter words and results here:
+    #   0 = gray   = not in word
+    #   1 = yellow = wrong spot
+    #   2 = green  = right spot
+    game = Game([
+        ('guess', '10000'),
+        ('words', '00000'),
+        ('enjoy', '01002'),
+        ('games', '12000'),
+    ])
+    
+    # Show all guesses & results
+    print()
+    print('Game')
+    print('====')
+    print(game)
+    
+    # Show possible "masks" given existing constraints
+    print()
+    print('Masks')
+    print('=====')
+    print(', '.join(game.generate_masks(pretty=True)))
 
-print()
-game = Game([('strop', '00011'), ('plonk', '10200'), ('above', '00201'), ('moons', '00200')], length=5)
-print(game)
+    # Get actual matches using words.txt (cheating)
+    print()
+    print('Cheating')
+    print('========')
+    print(f'Matches: {", ".join(game.get_matches())}')
 
-print()
-print(list(game.generate_masks(pretty=True)))
+    # Use basic heuristics to fill masks based on surrounding consonants/vowels
+    print()
+    print('Heuristics')
+    print('==========')
+    list(game.generate_matches(verbose=True, time_limit=1))
 
-# print()
-# print(game.get_word_matches())
 
-print()
-list(game.generate_guesses(verbose=True, time_limit=3))
+if __name__ == '__main__':
+    main()
