@@ -158,12 +158,12 @@ class Game:
                 mask[idx] = None
 
     def generate_matches(self, time_limit=15, verbose=False, pretty=True):
-        invalid_guessed = set()
-        duplicate_invalids = 0
-        total_invalids = 0
-        valid_guessed = set()
-        duplicate_valids = 0
-        total_valids = 0
+        invalid_guessed_words = set()
+        duplicate_invalid_words = 0
+        total_invalid_words = 0
+        valid_guessed_words = set()
+        duplicate_valid_words = 0
+        total_valid_words = 0
 
 
         def fill_mask(mask):
@@ -258,14 +258,14 @@ class Game:
                 filled_pretty = ''.join(filled)
                 
                 if filled_pretty in WORDS_SET:
-                    total_valids += 1
-                    already_guessed = filled_pretty in valid_guessed
-                    duplicate_valids += int(already_guessed)  # 0 or 1
+                    total_valid_words += 1
+                    already_guessed = filled_pretty in valid_guessed_words
+                    duplicate_valid_words += int(already_guessed)  # 0 or 1
                     
                     if already_guessed:
                         continue
 
-                    valid_guessed |= {filled_pretty}
+                    valid_guessed_words |= {filled_pretty}
                     
                     if verbose:
                         print(f'\n       Found word: {filled_pretty}')
@@ -275,9 +275,9 @@ class Game:
                     else:
                         yield filled
                 else:
-                    total_invalids += 1
-                    duplicate_invalids += bool(filled_pretty in invalid_guessed)
-                    invalid_guessed |= {filled_pretty}
+                    total_invalid_words += 1
+                    duplicate_invalid_words += bool(filled_pretty in invalid_guessed_words)
+                    invalid_guessed_words |= {filled_pretty}
 
                     if verbose:
                         if has_skipped_before:
@@ -294,13 +294,13 @@ class Game:
 
         if verbose:
             print()
-            print(f'Checked {total_valids + total_invalids:,} words ({len(valid_guessed):,} unique valid, {len(invalid_guessed):,} unique invalid)')
-            print(f'% valid (of total): {total_valids / (total_valids + total_invalids):.2%}')
-            print(f'% valid (of unique): {len(valid_guessed) / (len(valid_guessed) + len(invalid_guessed)):.2%}')
-            print(f'Duplicate valids checked: {duplicate_valids:,}')
-            print(f'Duplicate invalids checked: {duplicate_invalids:,}')
+            print(f'Checked {total_valid_words + total_invalid_words:,} words ({len(valid_guessed_words):,} unique valid, {len(invalid_guessed_words):,} unique invalid)')
+            print(f'% valid (of total): {total_valid_words / (total_valid_words + total_invalid_words):.2%}')
+            print(f'% valid (of unique): {len(valid_guessed_words) / (len(valid_guessed_words) + len(invalid_guessed_words)):.2%}')
+            print(f'Duplicate valids checked: {duplicate_valid_words:,}')
+            print(f'Duplicate invalids checked: {duplicate_invalid_words:,}')
             print('---')
-            print(f'Matches: {", ".join(valid_guessed)}')
+            print(f'Matches: {", ".join(valid_guessed_words)}')
 
     def get_matches(self):
         word_matches = set()
@@ -317,10 +317,10 @@ def main():
     #   1 = yellow = wrong spot
     #   2 = green  = right spot
     game = Game([
-        ('guess', '10000'),
-        ('words', '00000'),
-        ('enjoy', '01002'),
-        ('games', '12000'),
+        ('jacob', '00010'),
+        ('thing', '00000'),
+        ('lunes', '00120'),
+        # ('games', '12000'),
     ])
     
     # Show all guesses & results
