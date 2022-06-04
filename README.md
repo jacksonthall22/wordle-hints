@@ -66,6 +66,6 @@ Matches: RANGY, NAGGY, TANGY, MANGY
 ```
 
 ## To-do list
-- Include (`wordle-list`)[https://github.com/tabatkins/wordle-list/blob/39ee14e80dc1ef9df55e682e01979a75ed1ee171/words] as a submodule to this repo
+- Include [`wordle-list`](https://github.com/tabatkins/wordle-list/blob/39ee14e80dc1ef9df55e682e01979a75ed1ee171/words) as a submodule to this repo
 - Make sure functionality works as intended for target words & guesses with duplicate letters
 - Improve heuristics by analyzing `words.txt` to find actual probability distribution of vowel/consonant for all combos of vowels/consonants before & after
