@@ -172,16 +172,12 @@ class Game:
             empty_idxs = [i for i, e in enumerate(mask) if e is None]
             for idx in empty_idxs:
                 # Get consonant/vowel before and after
-                if idx-1 < 0:
-                    before = None
-                elif filled[idx-1] is None:
+                if idx-1 < 0 or filled[idx-1] is None:
                     before = None
                 else:
                     before = filled[idx-1] in CONSONANTS_SET
 
-                if idx+1 >= len(mask):
-                    after = None
-                elif filled[idx+1] is None:
+                if idx+1 >= len(mask) or filled[idx+1] is None:
                     after = None
                 else:
                     after = filled[idx+1] in CONSONANTS_SET
