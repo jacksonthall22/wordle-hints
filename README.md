@@ -29,6 +29,7 @@ GAMES
 
 ### Masks
 ```py
+# Get all possible "masks" using known information
 print(', '.join(game.generate_masks(pretty=True)))
 ```
 ```
