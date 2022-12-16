@@ -2,7 +2,7 @@
 This code exposes several functions to help with your daily [Wordle](https://www.nytimes.com/games/wordle/index.html).
 
 ## Functionality
-### Represent a Game
+### Represent a game
 ```py
 # 0 = Gray
 # 1 = Yellow
@@ -12,7 +12,7 @@ game = Game([
     ('words', '00000'),
     ('enjoy', '01002'),
     ('games', '12000'),
-])    
+])
 
 print(game)
 ```
@@ -29,21 +29,22 @@ GAMES
 
 ### Masks
 ```py
-# Get all possible "masks" using known information
-print(', '.join(game.generate_masks(pretty=True)))
+# Get all possible solution "masks" using known information
+print(list(game.generate_masks(pretty=True)))
 ```
 ```
-•AGNY, NAG•Y, NA•GY, •ANGY
+['•AGNY', 'NAG•Y', 'NA•GY', '•ANGY']
 ```
-### Get Possible Matches Using `words.txt` (Cheating)
+### Get possible matches using `words.txt` (pure cheating)
 ```py
-print(f'Matches: {", ".join(game.get_matches())}')
+print(list(game.get_matches()))
 ```
 ```
-Matches: RANGY, NAGGY, TANGY, MANGY
+['MANGY', 'RANGY', 'TANGY', 'NAGGY']
 ```
-### Heuristic Search
+### Heuristic search
 ```py
+# Run a search that tries semi-random letters in the blank spaces of each mask
 list(game.generate_matches(verbose=True, time_limit=1))
 ```
 ```
