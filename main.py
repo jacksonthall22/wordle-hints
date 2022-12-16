@@ -5,7 +5,9 @@ from copy import deepcopy
 import random
 import re
 import time
+from icecream import ic
 
+from utils import pluralize
 
 ALPHABET = string.ascii_uppercase
 VOWELS = 'AEIOU'
@@ -22,7 +24,7 @@ WORDS_SET = set(WORDS_TXT.splitlines())
 
 class Result:
     """
-    Represent the result of a guess: 
+    Represent the result of a guess:
         0 = not in word
         1 = wrong spot
         2 = right spot
@@ -60,7 +62,7 @@ class Guess:
         if isinstance(result, str):
             result = Result(result)
         assert len(word) == len(result), f'word length ({len(word)}) must equal result length ({len(result)})'
-        
+
         self.word = word.upper()
         self.result = result
 
@@ -85,6 +87,7 @@ class Game:
         self.guesses = guesses
 
         self.remaining_letters = ALPHABET_SET.copy()
+        self.invalid_letters = set()
 
         # Hold locations of correct letter placements
         self.correct_mask: List[Optional[str]] = [None] * length
@@ -99,11 +102,12 @@ class Game:
 
     def add_guess(self, guess: Guess):
         # # Make sure duplicate letters have representation
-        # included_letters = [ch for ch, res in zip(guess.word, guess.result) if res != 0]        
+        # included_letters = [ch for ch, res in zip(guess.word, guess.result) if res != 0]
 
         for idx, (ch, res) in enumerate(zip(guess.word, guess.result)):
             if res == '0':
                 self.remaining_letters -= {ch}
+                self.invalid_letters |= {ch}
             elif res == '1':
                 self.placement_constraints[ch] -= {idx, *(i for i, e in enumerate(self.correct_mask) if e)}
             else:
@@ -137,7 +141,7 @@ class Game:
 
                 # Place letter here
                 mask[idx] = ch
-                
+
                 # Remove this constraint
                 constrs_copy = deepcopy(constrs)
                 constrs_copy.pop(ch, None)
@@ -171,7 +175,7 @@ class Game:
 
             empty_idxs = [i for i, e in enumerate(mask) if e is None]
             for idx in empty_idxs:
-                # Get consonant/vowel before and after
+                # Get bool indicating consonant/vowel before and after unfilled char
                 if idx-1 < 0 or filled[idx-1] is None:
                     before = None
                 else:
@@ -182,8 +186,14 @@ class Game:
                 else:
                     after = filled[idx+1] in CONSONANTS_SET
 
+
+
                 # before = (mask[idx-1] in CONSONANTS_SET, None)[idx-1 < 0]
                 # after = (mask[idx+1] in CONSONANTS_SET, None)[idx+1 >= len(mask)], print(mask, idx)
+
+                available_vowels_set = VOWELS_SET - self.invalid_letters
+                available_consonants_set = CONSONANTS_SET - self.invalid_letters
+                # assert available_vowels_set or available_consonants_set,
 
                 r = random.random()
                 if before is None and after:
@@ -246,41 +256,40 @@ class Game:
             return filled
 
         for mask in self.generate_masks():
-            has_skipped_before = False
+            print(f'Checking mask {mask}')
 
             start_time = time.time()
             while True:
-                filled = fill_mask(mask)
-                filled_pretty = ''.join(filled)
-                
-                if filled_pretty in WORDS_SET:
+                filled_word = fill_mask(mask)
+                filled_word_pretty = ''.join(filled_word)
+
+                if filled_word_pretty in WORDS_SET:
                     total_valid_words += 1
-                    already_guessed = filled_pretty in valid_guessed_words
-                    duplicate_valid_words += int(already_guessed)  # 0 or 1
-                    
-                    if already_guessed:
+                    already_guessed_words = filled_word_pretty in valid_guessed_words
+                    duplicate_valid_words += int(already_guessed_words)  # 0 or 1
+
+                    if already_guessed_words:
                         continue
 
-                    valid_guessed_words |= {filled_pretty}
-                    
-                    if verbose:
-                        print(f'\n       Found word: {filled_pretty}')
+                    valid_guessed_words |= {filled_word_pretty}
 
                     if pretty:
-                        yield filled_pretty
+                        yield filled_word_pretty
                     else:
-                        yield filled
+                        yield filled_word
                 else:
                     total_invalid_words += 1
-                    duplicate_invalid_words += bool(filled_pretty in invalid_guessed_words)
-                    invalid_guessed_words |= {filled_pretty}
+                    duplicate_invalid_words += bool(filled_word_pretty in invalid_guessed_words)
+                    invalid_guessed_words |= {filled_word_pretty}
 
-                    if verbose:
-                        if has_skipped_before:
-                            print('\r', end='')
+                if verbose:
+                    print('\r', end='')
 
-                        print(f'({time.time() - start_time:3.1f}s) Skipping {filled_pretty}', end='')
-                        has_skipped_before = True
+                    print(f'({time.time() - start_time:3.1f}s) Skipping {filled_word_pretty}', end='')
+
+                    if valid_guessed_words:
+                        print(f' | Found {pluralize(len(valid_guessed_words), "word")}: '
+                          f'{", ".join(list(valid_guessed_words)[-10:])}', end='')
 
                 end_time = time.time()
                 if end_time - start_time >= time_limit:
@@ -300,9 +309,14 @@ class Game:
 
     def get_matches(self):
         word_matches = set()
+        valid_ch_regex = f'[{"".join(self.remaining_letters)}]'
+        # ic(valid_ch_regex)
+        # time.sleep(1)
+        # 1/0
+
         for mask in self.generate_masks():
-            mask_pat = ''.join((e if e is not None else '.' for e in mask))
-            print(mask_pat)
+            # mask_pat = ''.join((e if e is not None else '.' for e in mask))
+            mask_pat = ''.join((e if e is not None else valid_ch_regex for e in mask))
             matches = re.findall(mask_pat, WORDS_TXT, re.MULTILINE)
             word_matches |= set(matches)
         return word_matches
@@ -313,10 +327,10 @@ def main():
     #   1 = yellow = wrong spot
     #   2 = green  = right spot
     game = Game([
-        ('jacob', '00010'),
-        ('thing', '00000'),
-        ('lunes', '00120'),
-        # ('games', '12000'),
+        ('great', '01110'),
+        ('realm', '11101'),
+        ('marry', '22101'),
+        #('l', '22000'),
     ])
     
     # Show all guesses & results
@@ -332,10 +346,10 @@ def main():
     print(', '.join(game.generate_masks(pretty=True)))
 
     # Get actual matches using words.txt (cheating)
-    print()
-    print('Cheating')
-    print('========')
-    print(f'Matches: {", ".join(game.get_matches())}')
+    #print()
+    #print('Cheating')
+    #print('========')
+    #print(f'Matches: {", ".join(game.get_matches())}')
 
     # Use basic heuristics to fill masks based on surrounding consonants/vowels
     print()
