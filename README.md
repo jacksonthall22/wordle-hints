@@ -4,7 +4,7 @@ This code exposes several functions to help with your daily [Wordle](https://www
 ## Functionality
 ### Represent a Game
 ```py
-# 0 = Red
+# 0 = Gray
 # 1 = Yellow
 # 2 = Green
 game = Game([
