@@ -3,7 +3,10 @@ This code exposes several functions to help with your daily [Wordle](https://www
 
 ## Functionality
 ### Represent a Game
-```
+```py
+# 0 = Gray
+# 1 = Yellow
+# 2 = Green
 game = Game([
     ('guess', '10000'),
     ('words', '00000'),
@@ -25,21 +28,22 @@ GAMES
 ```
 
 ### Masks
-```
+```py
+# Get all possible "masks" using known information
 print(', '.join(game.generate_masks(pretty=True)))
 ```
 ```
 •AGNY, NAG•Y, NA•GY, •ANGY
 ```
 ### Get Possible Matches Using `words.txt` (Cheating)
-```
+```py
 print(f'Matches: {", ".join(game.get_matches())}')
 ```
 ```
 Matches: RANGY, NAGGY, TANGY, MANGY
 ```
 ### Heuristic Search
-```
+```py
 list(game.generate_matches(verbose=True, time_limit=1))
 ```
 ```
