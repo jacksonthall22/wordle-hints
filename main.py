@@ -302,7 +302,6 @@ class Game:
         word_matches = set()
         for mask in self.generate_masks():
             mask_pat = ''.join((e if e is not None else '.' for e in mask))
-            print(mask_pat)
             matches = re.findall(mask_pat, WORDS_TXT, re.MULTILINE)
             word_matches |= set(matches)
         return word_matches
